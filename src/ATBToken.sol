@@ -38,7 +38,7 @@ contract ATBToken is ERC20, Ownable {
      * @param _initialOwner The address of the deployer/owner.
      */
     constructor(address _requiredTokenAddress, address _initialOwner)
-        ERC20("ATB", "ATB")
+        ERC20("ABT", "ABT")
         Ownable(_initialOwner)
     {
         require(_requiredTokenAddress != address(0), "Address cannot be zero");
