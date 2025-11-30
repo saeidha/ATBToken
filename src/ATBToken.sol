@@ -7,7 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title ATBToken
- * @dev An ERC20 token with a daily claim function, restricted to holders of a specific token.
+ * @dev An ERC20 token with a claim function, restricted to holders of a specific token,
+ * with a variable claim amount and a daily claim count limit.
  */
 contract ATBToken is ERC20, Ownable {
     // The address of the token users must hold to be eligible for claiming.
@@ -16,14 +17,20 @@ contract ATBToken is ERC20, Ownable {
     // Max supply: 100 Billion tokens with 18 decimal places.
     uint256 public constant MAX_SUPPLY = 100_000_000_000 * (10**18);
 
-    // Claim amount: 10 tokens with 18 decimal places.
-    uint256 public constant CLAIM_AMOUNT = 10 * (10**18);
+    // Maximum number of claims allowed in a 24-hour period.
+    uint256 public constant MAX_CLAIMS_PER_PERIOD = 20;
 
     // Cooldown period: 24 hours in seconds.
     uint256 public constant COOLDOWN_PERIOD = 24 * 60 * 60; // 1 day
 
-    // Mapping to store the timestamp of the last claim for each address.
-    mapping(address => uint256) public lastClaimedTimestamp;
+    // Struct to track a user's claim history for the daily limit.
+    struct ClaimInfo {
+        uint256 claimCount;
+        uint256 periodStartTimestamp;
+    }
+
+    // Mapping to store the claim information for each address.
+    mapping(address => ClaimInfo) public userClaimInfo;
 
     /**
      * @dev Contract constructor.
@@ -40,32 +47,51 @@ contract ATBToken is ERC20, Ownable {
 
     /**
      * @dev The main claim function.
+     * @param _claimAmount The amount of tokens to claim, must be between 1 and 10 (inclusive).
      */
-    function claim() external {
-        // First check: Does the user hold the required token?
+    function claim(uint256 _claimAmount) external {
+        // --- Input Validation ---
+        // 1. Check if the claim amount is within the allowed range (1 to 10).
+        require(_claimAmount >= 1 && _claimAmount <= 10, "ATB: Claim amount must be between 1 and 10");
+
+        // Calculate the actual mint amount in the smallest unit (with 18 decimals).
+        uint256 actualMintAmount = _claimAmount * (10**18);
+
+        // --- Eligibility Check (Required Token Holder) ---
+        // 2. Check if the user holds the required token.
         require(
             requiredToken.balanceOf(msg.sender) > 0,
             "ATB: You must hold the required token to claim"
         );
 
-        // Second check: Has 24 hours passed since the last claim?
-        uint256 lastClaim = lastClaimedTimestamp[msg.sender];
-        require(
-            block.timestamp >= lastClaim + COOLDOWN_PERIOD,
-            "ATB: Cooldown period is active, please wait"
-        );
+        // --- Daily Claim Limit Check ---
+        ClaimInfo storage info = userClaimInfo[msg.sender];
 
-        // Check supply cap
+        // Check if the current claim period has ended (24 hours passed).
+        if (block.timestamp >= info.periodStartTimestamp + COOLDOWN_PERIOD) {
+            // Start a new period. Reset count and update timestamp.
+            info.claimCount = 1;
+            info.periodStartTimestamp = block.timestamp;
+        } else {
+            // Period is active. Check if the limit has been reached.
+            require(
+                info.claimCount < MAX_CLAIMS_PER_PERIOD,
+                "ATB: Daily claim limit reached. Wait for 24 hours from the start of the period."
+            );
+            // Increment the claim count for the current period.
+            info.claimCount += 1;
+        }
+
+        // --- Supply Cap Check ---
+        // 4. Check if max supply would be exceeded.
         require(
-            totalSupply() + CLAIM_AMOUNT <= MAX_SUPPLY,
+            totalSupply() + actualMintAmount <= MAX_SUPPLY,
             "ATB: Max supply would be exceeded"
         );
 
-        // Update the claim timestamp
-        lastClaimedTimestamp[msg.sender] = block.timestamp;
-
-        // Mint 10 new tokens for the user
-        _mint(msg.sender, CLAIM_AMOUNT);
+        // --- Minting ---
+        // Mint the tokens for the user.
+        _mint(msg.sender, actualMintAmount);
     }
 
     /**
