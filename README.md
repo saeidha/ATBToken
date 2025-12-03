@@ -69,8 +69,7 @@ forge script script/DeployATBToken.s.sol:DeployATBToken --rpc-url $LINEA_RPC_URL
 
 
 
-forge script script/DeployATBToken.s.sol:DeployATBToken --rpc-url $LINEA_RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv
-forge script script/DeployATBToken.s.sol:DeployATBToken --rpc-url $LINEA_RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv
+forge script script/DeployABT.s.sol:DeployABT --rpc-url $LINEA_RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv
 
 // for campain
-forge script script/SetCampaignConfig.s.sol --rpc-url <YOUR_RPC_URL> --broadcast -vvvv
+forge script script/SetCampaignConfig.s.sol --rpc-url $LINEA_RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv
