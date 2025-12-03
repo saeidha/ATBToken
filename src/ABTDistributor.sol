@@ -22,15 +22,15 @@ contract ABTDistributor is Ownable {
     uint256 public constant MAX_ABT_CLAIMS_PER_DAY = 20;
 
     // --- Campaign Configuration (Stored in smallest units, e.g., Wei) ---
-    bool public isCampaignActive;           // Master switch for the campaign
-    uint256 public rewardAmountPerUser;     // Amount of requiredToken to give per user (in smallest units)
-    uint256 public maxGlobalRewardsPerDay;  // Total limit of requiredToken rewards for ALL users daily (in smallest units)
+    bool public isCampaignActive;            // Master switch for the campaign
+    uint256 public rewardAmountPerUser;      // Amount of requiredToken to give per user (in smallest units)
+    uint256 public maxGlobalRewardsPerDay;   // Total limit of requiredToken rewards for ALL users daily (in smallest units)
     
     // --- State Tracking ---
     struct UserState {
-        uint256 dailyAbtClaims;    // How many ABT claims made today
-        uint256 lastAbtDayId;      // Day ID for ABT claims reset
-        uint256 lastRewardDayId;   // Day ID for the last Bonus Reward received reset
+        uint256 dailyAbtClaims;    // How many ABT claims made today
+        uint256 lastAbtDayId;      // Day ID for ABT claims reset
+        uint256 lastRewardDayId;   // Day ID for the last Bonus Reward received reset
     }
 
     // Tracks daily global usage for the campaign
@@ -52,8 +52,8 @@ contract ABTDistributor is Ownable {
     uint256 private constant TOKEN_DECIMALS_MULTIPLIER = 10**18;
 
     constructor(
-        address _abtTokenAddress, 
-        address _requiredTokenAddress, 
+        address _abtTokenAddress, 
+        address _requiredTokenAddress, 
         address _initialOwner
     ) Ownable(_initialOwner) {
         require(_abtTokenAddress != address(0), "Invalid ABT Token");
