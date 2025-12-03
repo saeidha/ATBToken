@@ -40,21 +40,6 @@ contract DeployABT is Script {
         abtToken.setDistributor(address(abtDistributor));
         console.log("ABTToken: Distributor set to ABTDistributor address.");
         
-        // 4. (Optional) Initialize Campaign Settings
-        // NOTE: Input values here are in WHOLE tokens (e.g., 1000)
-        
-        uint256 rewardAmountWhole = 10;   // 10 requiredToken per user
-        uint256 dailyCapWhole = 1000;     // Max 1000 requiredToken distributed daily globally
-        bool isActive = true;
-        
-        abtDistributor.setCampaignConfig(
-            isActive,
-            rewardAmountWhole,
-            dailyCapWhole
-        );
-        console.log("ABTDistributor: Campaign config set.");
-
-
         vm.stopBroadcast();
         // --- Deployment Complete ---
     }
