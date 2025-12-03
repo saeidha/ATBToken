@@ -18,8 +18,8 @@ contract SetCampaignConfig is Script {
         require(distributorAddress != address(0), "DISTRIBUTOR_ADDRESS environment variable not set or invalid.");
         
         // --- Campaign Parameters (Input in WHOLE tokens) ---
-        uint256 rewardAmountWhole = 10;   // 10 requiredToken per user
-        uint256 dailyCapWhole = 1000;     // Max 1000 requiredToken distributed daily globally
+        uint256 rewardAmountWhole = 1;   // 10 requiredToken per user
+        uint256 dailyCapWhole = 1;     // Max 1000 requiredToken distributed daily globally
         bool isActive = true;
 
         // --- Start Transaction ---
