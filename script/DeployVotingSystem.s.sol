@@ -2,19 +2,18 @@
 pragma solidity ^0.8.20;
 
 import {Script} from "forge-std/Script.sol";
-import {ATBToken} from "../src/ATBToken.sol";
 import {TokenVoting} from "../src/VotingSystem.sol";
 
 contract DeployVotingSystem is Script {
     function run() public returns (TokenVoting) {
-        vm.startBroadcast();
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
 
-        // First, deploy a new ATBToken to get an address for the TokenVoting constructor.
-        // In a real scenario, you would use an existing token address.
-        ATBToken atbToken = new ATBToken(address(this), msg.sender);
+        // Use the provided requiredTokenAddress
+        address requiredTokenAddress = 0x1789e0043623282D5DCc7F213d703C6D8BAfBB04;
         
-        // Now deploy the TokenVoting with the new token's address.
-        TokenVoting tokenVoting = new TokenVoting(address(atbToken));
+        // Deploy the TokenVoting with the specified token address.
+        TokenVoting tokenVoting = new TokenVoting(requiredTokenAddress);
 
         vm.stopBroadcast();
         return tokenVoting;
