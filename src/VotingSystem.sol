@@ -91,9 +91,15 @@ contract TokenVoting is Ownable {
         emit ProposalCreated(proposalCount, msg.sender, _title, block.timestamp + _durationSeconds);
     }
 
-    function vote(uint256 _proposalId, bool _support) external onlyTokenHolder {
+    function vote(uint256 _proposalId, bool _support) external {
         Proposal storage p = proposals[_proposalId];
         
+        // New eligibility check: token holder OR proposal creator OR allowed creator
+        require(
+            votingToken.balanceOf(msg.sender) > 0 || msg.sender == p.creator || allowedCreators[msg.sender],
+            "Not eligible to vote: Must be a token holder, proposal creator, or an allowed creator."
+        );
+
         require(p.isOpen, "Proposal does not exist or invalid");
         require(block.timestamp < p.endTime, "Voting has ended");
         require(!userVotes[_proposalId][msg.sender].hasVoted, "Already voted on this proposal");
