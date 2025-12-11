@@ -102,7 +102,6 @@ contract TokenVoting is Ownable {
 
         require(p.isOpen, "Proposal does not exist or invalid");
         require(block.timestamp < p.endTime, "Voting has ended");
-        require(!userVotes[_proposalId][msg.sender].hasVoted, "Already voted on this proposal");
 
         uint256 weight = votingToken.balanceOf(msg.sender);
 
