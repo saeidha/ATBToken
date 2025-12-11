@@ -103,6 +103,8 @@ contract TokenVoting is Ownable {
         require(p.isOpen, "Proposal does not exist or invalid");
         require(block.timestamp < p.endTime, "Voting has ended");
 
+        uint256 weight = 1;
+
         if (_support) {
             p.yesVotes += 1;
         } else {
