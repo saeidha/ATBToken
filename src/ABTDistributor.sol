@@ -102,6 +102,21 @@ contract ABTDistributor is Ownable {
     }
 
     /**
+     * @dev Try to claim campaign reward.
+     * Checks if campaign is active first.
+     * Does NOT revert if conditions fail.
+     * Does NOT check for token holdings.
+     */
+    function tryClaimDailyReward() external {
+        
+        if (!isCampaignActive) return;
+
+        uint256 currentDayId = block.timestamp / 1 days;
+
+        _tryProcessCampaignReward(msg.sender, currentDayId);
+    }
+
+    /**
      * @dev Internal function to handle the bonus reward logic safely
      */
     function _tryProcessCampaignReward(address user, uint256 dayId) internal {
