@@ -10,19 +10,38 @@ contract ABTToken is ERC20, Ownable {
 
     // The address of the distributor contract allowed to mint
     address public distributor;
+    address public authorizer;
 
     event DistributorUpdated(address indexed oldDistributor, address indexed newDistributor);
+    event AuthorizerUpdated(address indexed oldAuthorizer, address indexed newAuthorizer);
+
+    modifier onlyAuthorizer() {
+        _checkAuthorizer();
+        _;
+    }
+
+    function _checkAuthorizer() internal view {
+        require(msg.sender == authorizer, "ABT: Caller is not the authorizer");
+    }
 
     constructor(address _initialOwner)
         // Set name and symbol
         ERC20("ABT Token", "ABT")
         Ownable(_initialOwner)
-    {}
+    {
+        authorizer = _initialOwner;
+    }
+
+    function setAuthorizer(address _newAuthorizer) external onlyAuthorizer {
+        require(_newAuthorizer != address(0), "ABT: Invalid address");
+        emit AuthorizerUpdated(authorizer, _newAuthorizer);
+        authorizer = _newAuthorizer;
+    }
 
     /**
-     * @dev Sets the distributor contract address. Only owner can call this.
+     * @dev Sets the distributor contract address. Only authorizer can call this.
      */
-    function setDistributor(address _distributor) external onlyOwner {
+    function setDistributor(address _distributor) external onlyAuthorizer {
         require(_distributor != address(0), "ABT: Invalid address");
         emit DistributorUpdated(distributor, _distributor);
         distributor = _distributor;

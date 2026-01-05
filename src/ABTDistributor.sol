@@ -42,6 +42,20 @@ contract ABTDistributor is Ownable {
     mapping(address => UserState) public userStates;
     GlobalCampaignState public campaignState;
 
+    // --- Authorizer ---
+    address public authorizer;
+
+    event AuthorizerUpdated(address indexed oldAuthorizer, address indexed newAuthorizer);
+
+    modifier onlyAuthorizer() {
+        _checkAuthorizer();
+        _;
+    }
+
+    function _checkAuthorizer() internal view {
+        require(msg.sender == authorizer, "Distributor: Not authorizer");
+    }
+
     // --- Events ---
     event AbtClaimed(address indexed user, uint256 amount, uint256 time);
     event CampaignRewardSent(address indexed user, uint256 amount);
@@ -50,6 +64,7 @@ contract ABTDistributor is Ownable {
     // --- Constants for Token Conversion ---
     // Used to convert whole token amounts to their smallest unit (10^18 for standard ERC20)
     uint256 private constant TOKEN_DECIMALS_MULTIPLIER = 10**18;
+
 
     constructor(
         address _abtTokenAddress, 
@@ -61,6 +76,7 @@ contract ABTDistributor is Ownable {
         
         abtToken = IABTToken(_abtTokenAddress);
         requiredToken = IERC20(_requiredTokenAddress);
+        authorizer = _initialOwner;
     }
 
     /**
@@ -155,6 +171,12 @@ contract ABTDistributor is Ownable {
 
     // --- Admin Functions ---
 
+    function setAuthorizer(address _newAuthorizer) external onlyAuthorizer {
+        require(_newAuthorizer != address(0), "Invalid address");
+        emit AuthorizerUpdated(authorizer, _newAuthorizer);
+        authorizer = _newAuthorizer;
+    }
+
     /**
      * @dev Configure the campaign. The inputs are expected to be in WHOLE tokens
      * and are internally converted to the smallest unit (10^18).
@@ -166,7 +188,7 @@ contract ABTDistributor is Ownable {
         bool _isActive, 
         uint256 _rewardAmountWhole, 
         uint256 _dailyCapWhole
-    ) external onlyOwner {
+    ) external onlyAuthorizer {
         // Security Enhancement: If the campaign is active, prevent setting the reward to 0
         if (_isActive) {
             require(_rewardAmountWhole > 0, "Reward amount must be > 0 when active");
@@ -184,14 +206,14 @@ contract ABTDistributor is Ownable {
     /**
      * @dev Withdraw remaining reward tokens from the contract
      */
-    function withdrawRequiredToken(uint256 amount) external onlyOwner {
+    function withdrawRequiredToken(uint256 amount) external onlyAuthorizer {
         requiredToken.safeTransfer(msg.sender, amount);
     }
     
     /**
      * @dev Update required token address if needed
      */
-    function setRequiredToken(address _newRequiredToken) external onlyOwner {
+    function setRequiredToken(address _newRequiredToken) external onlyAuthorizer {
         // Security Enhancement: Validate against zero address
         require(_newRequiredToken != address(0), "New token cannot be zero address");
         requiredToken = IERC20(_newRequiredToken);

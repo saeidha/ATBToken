@@ -50,8 +50,12 @@ contract TokenVoting is Ownable {
     // --- Modifiers ---
 
     modifier onlyTokenHolder() {
-        require(votingToken.balanceOf(msg.sender) > 0, "No tokens to vote");
+        _checkTokenHolder();
         _;
+    }
+
+    function _checkTokenHolder() internal view {
+        require(votingToken.balanceOf(msg.sender) > 0, "No tokens to vote");
     }
 
     // --- Admin Functions ---
