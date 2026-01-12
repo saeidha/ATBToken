@@ -77,3 +77,8 @@ forge script script/SetCampaignConfig.s.sol --rpc-url $LINEA_RPC_URL --etherscan
 
 
 forge script script/DeployVotingSystem.s.sol:DeployVotingSystem --rpc-url $LINEA_RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv
+
+
+
+DeployPublicChat.s
+forge script script/DeployPublicChat.s.sol:DeployPublicChat --rpc-url $LINEA_RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv
