@@ -25,3 +25,8 @@ contract TokenVoting is Ownable {
     }
 
     IERC20 public votingToken;
+    uint256 public constant CREATION_THRESHOLD = 1000 * 10**18; // Assuming 18 decimals
+
+    uint256 public proposalCount;
+    mapping(uint256 => Proposal) public proposals;
+    mapping(address => bool) public allowedCreators;
