@@ -6,3 +6,6 @@ import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract TokenVoting is Ownable {
     
+    struct Proposal {
+        uint256 id;
+        address creator;
