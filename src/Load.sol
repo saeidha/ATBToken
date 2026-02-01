@@ -478,3 +478,95 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
         // Calculate liquidation penalty (5% of loan value)
         uint256 penalty = (repaymentRequired * LIQUIDATION_PENALTY) / BASIS_POINTS;
         uint256 totalRepayment = repaymentRequired + penalty;
+        
+        // Check if collateral covers repayment + penalty
+        require(collateralValue >= totalRepayment, "Insufficient collateral for liquidation");
+        
+        // Calculate liquidator reward (1% of collateral)
+        uint256 liquidatorReward = (loan.collateralAmount * LIQUIDATION_REWARD) / BASIS_POINTS;
+        uint256 remainingCollateral = loan.collateralAmount - liquidatorReward;
+        
+        // Transfer repayment from liquidator
+        IERC20(loan.loanToken).transferFrom(msg.sender, address(this), repaymentRequired);
+        
+        // Transfer collateral to liquidator (reward)
+        IERC20(loan.collateralToken).transfer(msg.sender, liquidatorReward);
+        
+        // Transfer remaining collateral to pool/lender
+        if (loan.lender == address(0)) {
+            // Loan was from pool
+            IERC20(loan.collateralToken).transfer(address(this), remainingCollateral);
+            totalLiquidity[loan.loanToken] += repaymentRequired;
+        } else {
+            // P2P loan
+            IERC20(loan.collateralToken).transfer(loan.lender, remainingCollateral);
+        }
+        
+        // Update loan state
+        loan.isActive = false;
+        loan.isLiquidated = true;
+        loan.amountOwed = 0;
+        
+        // Update borrowed amount
+        if (loan.lender == address(0)) {
+            totalBorrowed[loan.loanToken] -= loan.amountPrincipal;
+        }
+        
+        emit LoanLiquidated(
+            loanId,
+            msg.sender,
+            loan.borrower,
+            repaymentRequired,
+            loan.collateralAmount
+        );
+    }
+    
+    // ============ INTEREST FUNCTIONS ============
+    
+    /**
+     * @dev Accrue interest for a lender
+     * @param lender Address of lender
+     * @param token Address of token
+     */
+    function _accrueInterest(address lender, address token) internal {
+        LenderPosition storage position = lenderPositions[lender];
+        
+        if (position.amountLent == 0) return;
+        
+        uint256 timeElapsed = block.timestamp - position.lastInterestUpdate;
+        if (timeElapsed == 0) return;
+        
+        // Calculate interest based on utilization rate
+        uint256 utilizationRate = totalBorrowed[token] * BASIS_POINTS / 
+                                 (totalLiquidity[token] + totalBorrowed[token]);
+        
+        // Base rate + utilization premium
+        uint256 currentRate = tokenConfigs[token].baseInterestRate + 
+                            (utilizationRate * 100 / BASIS_POINTS); // 1% premium per 100% utilization
+        
+        // Calculate interest
+        uint256 interest = (position.amountLent * currentRate * timeElapsed) / 
+                         (BASIS_POINTS * SECONDS_PER_YEAR);
+        
+        position.accumulatedInterest += interest;
+        position.lastInterestUpdate = block.timestamp;
+        
+        emit InterestAccrued(lender, token, interest);
+    }
+    
+    /**
+     * @dev Claim accumulated interest
+     * @param token Address of token
+     */
+    function claimInterest(address token) external nonReentrant {
+        _accrueInterest(msg.sender, token);
+        
+        LenderPosition storage position = lenderPositions[msg.sender];
+        uint256 interest = position.accumulatedInterest;
+        
+        require(interest > 0, "No interest to claim");
+        require(interest <= totalLiquidity[token], "Insufficient liquidity");
+        
+        position.accumulatedInterest = 0;
+        totalLiquidity[token] -= interest;
+        
