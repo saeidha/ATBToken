@@ -9,3 +9,7 @@ contract TokenVoting is Ownable {
     struct Proposal {
         uint256 id;
         address creator;
+        string title;
+        string description;
+        uint256 endTime;
+        uint256 yesVotes; // Total weight of YES votes
