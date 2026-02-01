@@ -41,3 +41,6 @@ contract TokenVoting is Ownable {
     event Voted(uint256 indexed proposalId, address indexed voter, bool support, uint256 weight);
     event Liked(uint256 indexed proposalId, address indexed user);
     event CreatorStatusChanged(address indexed user, bool isAllowed);
+
+    constructor(address _tokenAddress) Ownable(msg.sender) {
+        votingToken = IERC20(_tokenAddress);
