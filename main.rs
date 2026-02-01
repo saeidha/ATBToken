@@ -39,3 +39,5 @@ contract TokenVoting is Ownable {
 
     event ProposalCreated(uint256 indexed id, address indexed creator, string title, uint256 endTime);
     event Voted(uint256 indexed proposalId, address indexed voter, bool support, uint256 weight);
+    event Liked(uint256 indexed proposalId, address indexed user);
+    event CreatorStatusChanged(address indexed user, bool isAllowed);
