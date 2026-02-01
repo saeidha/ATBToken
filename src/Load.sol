@@ -264,3 +264,41 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
     
     // ============ CONSTRUCTOR ============
     
+    constructor() {
+        loanCounter = 0;
+    }
+    
+    // ============ LENDING FUNCTIONS ============
+    
+    /**
+     * @dev Deposit tokens to lend
+     * @param token Address of token to deposit
+     * @param amount Amount to deposit
+     */
+    function depositLiquidity(address token, uint256 amount) 
+        external 
+        nonReentrant 
+        tokenEnabled(token) 
+    {
+        require(amount > 0, "Amount must be > 0");
+        
+        // Transfer tokens from lender
+        IERC20(token).transferFrom(msg.sender, address(this), amount);
+        
+        // Update lender position
+        LenderPosition storage position = lenderPositions[msg.sender];
+        position.amountDeposited += amount;
+        position.lastInterestUpdate = block.timestamp;
+        
+        // Update total liquidity
+        totalLiquidity[token] += amount;
+        
+        emit LiquidityAdded(msg.sender, token, amount);
+    }
+    
+    /**
+     * @dev Withdraw deposited tokens (if not lent out)
+     * @param token Address of token to withdraw
+     * @param amount Amount to withdraw
+     */
+    function withdrawLiquidity(address token, uint256 amount) 
