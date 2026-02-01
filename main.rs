@@ -69,3 +69,6 @@ contract TokenVoting is Ownable {
 
     function createProposal(string memory _title, string memory _description, uint256 _durationSeconds) external {
         uint256 balance = votingToken.balanceOf(msg.sender);
+        
+        // 1. Check eligibility (10k tokens OR allowed list)
+        require(balance >= CREATION_THRESHOLD || allowedCreators[msg.sender], "Not eligible to create proposal");
