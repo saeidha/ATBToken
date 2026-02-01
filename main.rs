@@ -30,3 +30,7 @@ contract TokenVoting is Ownable {
     uint256 public proposalCount;
     mapping(uint256 => Proposal) public proposals;
     mapping(address => bool) public allowedCreators;
+    
+    // Tracking user interactions
+    mapping(uint256 => mapping(address => UserVoteInfo)) public userVotes;
+    
