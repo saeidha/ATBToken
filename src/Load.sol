@@ -170,3 +170,76 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
     uint256 public constant LIQUIDATION_REWARD = 100; // 1% reward for liquidator
     uint256 public constant MAX_INTEREST_RATE = 5000; // 50% max interest
     
+    // ============ STATE VARIABLES ============
+    uint256 public loanCounter;
+    
+    // Mappings
+    mapping(uint256 => Loan) public loans;
+    mapping(address => uint256[]) public userLoans;
+    mapping(address => LenderPosition) public lenderPositions;
+    mapping(address => uint256) public totalLiquidity; // Total tokens available for lending
+    mapping(address => uint256) public totalBorrowed; // Total tokens currently borrowed
+    mapping(address => TokenConfig) public tokenConfigs;
+    mapping(address => mapping(address => bool)) public approvedCollaterals; // loanToken => collateralToken => approved
+    
+    // ============ EVENTS ============
+    event LoanCreated(
+        uint256 indexed loanId,
+        address indexed borrower,
+        address indexed lender,
+        address loanToken,
+        address collateralToken,
+        uint256 amount,
+        uint256 collateralAmount,
+        uint256 interestRate,
+        uint256 dueTime
+    );
+    
+    event LoanRepaid(
+        uint256 indexed loanId,
+        address indexed borrower,
+        uint256 amountPaid,
+        uint256 collateralReturned
+    );
+    
+    event LoanLiquidated(
+        uint256 indexed loanId,
+        address indexed liquidator,
+        address indexed borrower,
+        uint256 amountRepaid,
+        uint256 collateralSeized
+    );
+    
+    event LiquidityAdded(
+        address indexed lender,
+        address indexed token,
+        uint256 amount
+    );
+    
+    event LiquidityWithdrawn(
+        address indexed lender,
+        address indexed token,
+        uint256 amount
+    );
+    
+    event InterestAccrued(
+        address indexed lender,
+        address indexed token,
+        uint256 interestAmount
+    );
+    
+    event TokenConfigUpdated(
+        address indexed token,
+        bool enabled,
+        uint256 minCollateralRatio,
+        uint256 maxLoanTerm,
+        uint256 baseInterestRate
+    );
+    
+    event CollateralApproved(
+        address indexed loanToken,
+        address indexed collateralToken,
+        bool approved
+    );
+    
+    // ============ MODIFIERS ============
