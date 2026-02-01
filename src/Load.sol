@@ -302,3 +302,95 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
      * @param amount Amount to withdraw
      */
     function withdrawLiquidity(address token, uint256 amount) 
+        external 
+        nonReentrant 
+    {
+        LenderPosition storage position = lenderPositions[msg.sender];
+        
+        // Calculate available balance (deposited - lent out)
+        uint256 availableBalance = position.amountDeposited - position.amountLent;
+        require(amount <= availableBalance, "Insufficient available balance");
+        
+        // Accrue interest before withdrawal
+        _accrueInterest(msg.sender, token);
+        
+        // Update positions
+        position.amountDeposited -= amount;
+        totalLiquidity[token] -= amount;
+        
+        // Transfer tokens to lender
+        IERC20(token).transfer(msg.sender, amount);
+        
+        emit LiquidityWithdrawn(msg.sender, token, amount);
+    }
+    
+    // ============ BORROWING FUNCTIONS ============
+    
+    /**
+     * @dev Request a loan from the liquidity pool
+     * @param loanToken Address of token to borrow
+     * @param collateralToken Address of collateral token
+     * @param loanAmount Amount to borrow
+     * @param collateralAmount Amount of collateral to deposit
+     * @param loanDuration Duration of loan in seconds
+     */
+    function requestLoan(
+        address loanToken,
+        address collateralToken,
+        uint256 loanAmount,
+        uint256 collateralAmount,
+        uint256 loanDuration
+    ) 
+        external 
+        nonReentrant 
+        tokenEnabled(loanToken)
+        returns (uint256) 
+    {
+        // Validate inputs
+        require(loanAmount > 0, "Loan amount must be > 0");
+        require(collateralAmount > 0, "Collateral amount must be > 0");
+        require(approvedCollaterals[loanToken][collateralToken], "Collateral not approved");
+        
+        TokenConfig storage config = tokenConfigs[loanToken];
+        
+        // Check loan duration
+        require(loanDuration <= config.maxLoanTerm, "Loan duration too long");
+        
+        // Calculate collateral ratio
+        uint256 collateralValue = _getTokenValue(collateralToken, collateralAmount);
+        uint256 loanValue = _getTokenValue(loanToken, loanAmount);
+        uint256 collateralRatio = (collateralValue * BASIS_POINTS) / loanValue;
+        
+        require(collateralRatio >= config.minCollateralRatio, "Insufficient collateral");
+        
+        // Check available liquidity
+        require(loanAmount <= totalLiquidity[loanToken], "Insufficient liquidity");
+        
+        // Calculate dynamic interest rate
+        uint256 interestRate = _calculateInterestRate(loanToken, loanAmount);
+        
+        // Calculate total owed
+        uint256 interestAmount = (loanAmount * interestRate * loanDuration) / 
+                                (BASIS_POINTS * SECONDS_PER_YEAR);
+        uint256 totalOwed = loanAmount + interestAmount;
+        
+        // Transfer collateral from borrower
+        IERC20(collateralToken).transferFrom(msg.sender, address(this), collateralAmount);
+        
+        // Transfer loan tokens to borrower
+        IERC20(loanToken).transfer(msg.sender, loanAmount);
+        
+        // Create loan
+        uint256 loanId = loanCounter++;
+        loans[loanId] = Loan({
+            borrower: msg.sender,
+            lender: address(0), // From pool
+            amountPrincipal: loanAmount,
+            amountOwed: totalOwed,
+            collateralAmount: collateralAmount,
+            collateralToken: collateralToken,
+            loanToken: loanToken,
+            interestRate: interestRate,
+            startTime: block.timestamp,
+            dueTime: block.timestamp + loanDuration,
+            isActive: true,
