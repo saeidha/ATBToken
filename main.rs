@@ -66,3 +66,6 @@ contract TokenVoting is Ownable {
     }
 
     // --- Core Functions ---
+
+    function createProposal(string memory _title, string memory _description, uint256 _durationSeconds) external {
+        uint256 balance = votingToken.balanceOf(msg.sender);
