@@ -44,3 +44,7 @@ contract TokenVoting is Ownable {
 
     constructor(address _tokenAddress) Ownable(msg.sender) {
         votingToken = IERC20(_tokenAddress);
+        allowedCreators[msg.sender] = true; // Default owner is allowed
+    }
+
+    // --- Modifiers ---
