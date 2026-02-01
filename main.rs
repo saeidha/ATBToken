@@ -34,3 +34,8 @@ contract TokenVoting is Ownable {
     // Tracking user interactions
     mapping(uint256 => mapping(address => UserVoteInfo)) public userVotes;
     
+    // Daily restriction tracking: User Address => Last Creation Day (Unix Day)
+    mapping(address => uint256) public lastProposalDay;
+
+    event ProposalCreated(uint256 indexed id, address indexed creator, string title, uint256 endTime);
+    event Voted(uint256 indexed proposalId, address indexed voter, bool support, uint256 weight);
