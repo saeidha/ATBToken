@@ -570,3 +570,82 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
         position.accumulatedInterest = 0;
         totalLiquidity[token] -= interest;
         
+        IERC20(token).transfer(msg.sender, interest);
+    }
+    
+    // ============ VIEW FUNCTIONS ============
+    
+    /**
+     * @dev Get current utilization rate for a token
+     * @param token Address of token
+     * @return Utilization rate in basis points
+     */
+    function getUtilizationRate(address token) public view returns (uint256) {
+        uint256 totalSupply = totalLiquidity[token] + totalBorrowed[token];
+        if (totalSupply == 0) return 0;
+        return (totalBorrowed[token] * BASIS_POINTS) / totalSupply;
+    }
+    
+    /**
+     * @dev Check if a loan is undercollateralized
+     * @param loanId ID of loan
+     * @return True if undercollateralized
+     */
+    function _isUndercollateralized(uint256 loanId) internal view returns (bool) {
+        Loan storage loan = loans[loanId];
+        
+        uint256 collateralValue = _getTokenValue(loan.collateralToken, loan.collateralAmount);
+        uint256 loanValue = _getTokenValue(loan.loanToken, loan.amountOwed);
+        
+        // Apply safety margin (10%)
+        uint256 requiredCollateral = (loanValue * tokenConfigs[loan.loanToken].minCollateralRatio * 11000) / 
+                                    (BASIS_POINTS * 10000);
+        
+        return collateralValue < requiredCollateral;
+    }
+    
+    /**
+     * @dev Calculate dynamic interest rate
+     * @param token Address of token
+     * @param amount Amount to borrow
+     * @return Interest rate in basis points
+     */
+    function _calculateInterestRate(address token, uint256 amount) internal view returns (uint256) {
+        TokenConfig storage config = tokenConfigs[token];
+        uint256 utilizationBefore = getUtilizationRate(token);
+        
+        // Calculate new utilization if this loan is taken
+        uint256 newBorrowed = totalBorrowed[token] + amount;
+        uint256 newTotal = totalLiquidity[token] + newBorrowed;
+        uint256 utilizationAfter = (newBorrowed * BASIS_POINTS) / newTotal;
+        
+        // Base rate + utilization premium
+        uint256 rate = config.baseInterestRate + 
+                      (utilizationAfter * 200 / BASIS_POINTS); // 2% premium per 100% utilization
+        
+        return rate > MAX_INTEREST_RATE ? MAX_INTEREST_RATE : rate;
+    }
+    
+    /**
+     * @dev Get value of tokens (simplified - in production use oracle)
+     * @param token Address of token
+     * @param amount Amount of tokens
+     * @return Value in USD (simplified as 1:1 for same token type)
+     */
+    function _getTokenValue(address token, uint256 amount) internal pure returns (uint256) {
+        // In production, use Chainlink oracles or TWAP
+        // This is a simplified version assuming 1 token = 1 USD for demo
+        // Different tokens would have different prices in reality
+        return amount;
+    }
+    
+    // ============ ADMIN FUNCTIONS ============
+    
+    /**
+     * @dev Configure a token for lending
+     * @param token Address of token
+     * @param enabled Whether token is enabled
+     * @param minCollateralRatio Minimum collateral ratio in basis points
+     * @param maxLoanTerm Maximum loan term in seconds
+     * @param baseInterestRate Base interest rate in basis points
+     */
