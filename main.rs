@@ -56,3 +56,7 @@ contract TokenVoting is Ownable {
 
     function _checkTokenHolder() internal view {
         require(votingToken.balanceOf(msg.sender) > 0, "No tokens to vote");
+    }
+
+    // --- Admin Functions ---
+
