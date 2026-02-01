@@ -649,3 +649,51 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
      * @param maxLoanTerm Maximum loan term in seconds
      * @param baseInterestRate Base interest rate in basis points
      */
+    function configureToken(
+        address token,
+        bool enabled,
+        uint256 minCollateralRatio,
+        uint256 maxLoanTerm,
+        uint256 baseInterestRate
+    ) external onlyOwner {
+        require(minCollateralRatio >= 11000, "Collateral ratio too low"); // Min 110%
+        require(baseInterestRate <= MAX_INTEREST_RATE, "Interest rate too high");
+        
+        tokenConfigs[token] = TokenConfig({
+            enabled: enabled,
+            minCollateralRatio: minCollateralRatio,
+            maxLoanTerm: maxLoanTerm,
+            baseInterestRate: baseInterestRate
+        });
+        
+        emit TokenConfigUpdated(token, enabled, minCollateralRatio, maxLoanTerm, baseInterestRate);
+    }
+    
+    /**
+     * @dev Approve a collateral token for a loan token
+     * @param loanToken Address of loan token
+     * @param collateralToken Address of collateral token
+     * @param approved Whether approved
+     */
+    function approveCollateral(
+        address loanToken,
+        address collateralToken,
+        bool approved
+    ) external onlyOwner {
+        approvedCollaterals[loanToken][collateralToken] = approved;
+        emit CollateralApproved(loanToken, collateralToken, approved);
+    }
+    
+    /**
+     * @dev Emergency withdraw tokens (admin only)
+     * @param token Address of token
+     * @param amount Amount to withdraw
+     */
+    function emergencyWithdraw(address token, uint256 amount) external onlyOwner {
+        IERC20(token).transfer(owner(), amount);
+    }
+    
+    /**
+     * @dev Get loan details
+     * @param loanId ID of loan
+     * @return Loan struct
