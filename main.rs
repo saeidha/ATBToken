@@ -60,3 +60,5 @@ contract TokenVoting is Ownable {
 
     // --- Admin Functions ---
 
+    function setAllowedCreator(address _user, bool _status) external onlyOwner {
+        allowedCreators[_user] = _status;
