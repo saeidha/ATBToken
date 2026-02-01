@@ -23,3 +23,5 @@ contract TokenVoting is Ownable {
         bool support; // true for Yes, false for No
         uint256 voteWeight;
     }
+
+    IERC20 public votingToken;
