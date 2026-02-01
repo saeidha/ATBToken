@@ -48,3 +48,7 @@ contract TokenVoting is Ownable {
     }
 
     // --- Modifiers ---
+
+    modifier onlyTokenHolder() {
+        _checkTokenHolder();
+        _;
