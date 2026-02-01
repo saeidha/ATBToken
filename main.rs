@@ -13,3 +13,8 @@ contract TokenVoting is Ownable {
         string description;
         uint256 endTime;
         uint256 yesVotes; // Total weight of YES votes
+        uint256 noVotes;  // Total weight of NO votes
+        uint256 likeCount;
+        bool isOpen;
+    }
+
