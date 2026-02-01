@@ -394,3 +394,87 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
             startTime: block.timestamp,
             dueTime: block.timestamp + loanDuration,
             isActive: true,
+            isLiquidated: false
+        });
+        
+        // Update state
+        userLoans[msg.sender].push(loanId);
+        totalLiquidity[loanToken] -= loanAmount;
+        totalBorrowed[loanToken] += loanAmount;
+        
+        emit LoanCreated(
+            loanId,
+            msg.sender,
+            address(0),
+            loanToken,
+            collateralToken,
+            loanAmount,
+            collateralAmount,
+            interestRate,
+            block.timestamp + loanDuration
+        );
+        
+        return loanId;
+    }
+    
+    /**
+     * @dev Repay a loan
+     * @param loanId ID of loan to repay
+     */
+    function repayLoan(uint256 loanId) 
+        external 
+        nonReentrant 
+        loanActive(loanId) 
+    {
+        Loan storage loan = loans[loanId];
+        require(msg.sender == loan.borrower, "Only borrower can repay");
+        require(block.timestamp <= loan.dueTime, "Loan overdue");
+        
+        uint256 amountToRepay = loan.amountOwed;
+        
+        // Transfer repayment from borrower
+        IERC20(loan.loanToken).transferFrom(msg.sender, address(this), amountToRepay);
+        
+        // Return collateral to borrower
+        IERC20(loan.collateralToken).transfer(loan.borrower, loan.collateralAmount);
+        
+        // Update loan state
+        loan.isActive = false;
+        loan.amountOwed = 0;
+        
+        // Update pool state
+        if (loan.lender == address(0)) {
+            // Loan was from pool
+            totalLiquidity[loan.loanToken] += amountToRepay;
+            totalBorrowed[loan.loanToken] -= loan.amountPrincipal;
+        }
+        
+        emit LoanRepaid(loanId, msg.sender, amountToRepay, loan.collateralAmount);
+    }
+    
+    // ============ LIQUIDATION FUNCTIONS ============
+    
+    /**
+     * @dev Liquidate an undercollateralized loan
+     * @param loanId ID of loan to liquidate
+     */
+    function liquidateLoan(uint256 loanId) 
+        external 
+        nonReentrant 
+        loanActive(loanId) 
+    {
+        Loan storage loan = loans[loanId];
+        
+        // Check if loan is overdue or undercollateralized
+        bool isOverdue = block.timestamp > loan.dueTime;
+        bool isUndercollateralized = _isUndercollateralized(loanId);
+        
+        require(isOverdue || isUndercollateralized, "Loan not liquidatable");
+        
+        // Calculate amounts
+        uint256 repaymentRequired = loan.amountOwed;
+        uint256 collateralValue = _getTokenValue(loan.collateralToken, loan.collateralAmount);
+        
+        // Calculate liquidation penalty (5% of loan value)
+        uint256 penalty = (repaymentRequired * LIQUIDATION_PENALTY) / BASIS_POINTS;
+        uint256 totalRepayment = repaymentRequired + penalty;
