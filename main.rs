@@ -78,3 +78,6 @@ contract TokenVoting is Ownable {
         require(lastProposalDay[msg.sender] < currentDay, "You can only create one proposal per day");
 
         // Create Proposal
+        proposalCount++;
+        proposals[proposalCount] = Proposal({
+            id: proposalCount,
