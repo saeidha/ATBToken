@@ -18,3 +18,8 @@ contract TokenVoting is Ownable {
         bool isOpen;
     }
 
+    struct UserVoteInfo {
+        bool hasVoted;
+        bool support; // true for Yes, false for No
+        uint256 voteWeight;
+    }
