@@ -62,3 +62,7 @@ contract TokenVoting is Ownable {
 
     function setAllowedCreator(address _user, bool _status) external onlyOwner {
         allowedCreators[_user] = _status;
+        emit CreatorStatusChanged(_user, _status);
+    }
+
+    // --- Core Functions ---
