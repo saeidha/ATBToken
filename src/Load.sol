@@ -697,3 +697,26 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
      * @dev Get loan details
      * @param loanId ID of loan
      * @return Loan struct
+     */
+    function getLoan(uint256 loanId) external view returns (Loan memory) {
+        return loans[loanId];
+    }
+    
+    /**
+     * @dev Get user's loan IDs
+     * @param user Address of user
+     * @return Array of loan IDs
+     */
+    function getUserLoans(address user) external view returns (uint256[] memory) {
+        return userLoans[user];
+    }
+    
+    /**
+     * @dev Get available liquidity for a token
+     * @param token Address of token
+     * @return Available liquidity
+     */
+    function getAvailableLiquidity(address token) external view returns (uint256) {
+        return totalLiquidity[token];
+    }
+}
