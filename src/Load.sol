@@ -243,3 +243,24 @@ contract ERC20TokenLoan is Ownable, ReentrancyGuard {
     );
     
     // ============ MODIFIERS ============
+    
+    /**
+     * @dev Modifier to check if token is enabled for lending
+     */
+    modifier tokenEnabled(address token) {
+        require(tokenConfigs[token].enabled, "Token not enabled");
+        _;
+    }
+    
+    /**
+     * @dev Modifier to check if loan exists and is active
+     */
+    modifier loanActive(uint256 loanId) {
+        require(loanId < loanCounter, "Loan does not exist");
+        require(loans[loanId].isActive, "Loan not active");
+        require(!loans[loanId].isLiquidated, "Loan liquidated");
+        _;
+    }
+    
+    // ============ CONSTRUCTOR ============
+    
