@@ -72,3 +72,7 @@ contract TokenVoting is Ownable {
         
         // 1. Check eligibility (10k tokens OR allowed list)
         require(balance >= CREATION_THRESHOLD || allowedCreators[msg.sender], "Not eligible to create proposal");
+
+        // 2. Check Daily Limit (Resets at midnight UTC)
+        uint256 currentDay = block.timestamp / 1 days;
+        require(lastProposalDay[msg.sender] < currentDay, "You can only create one proposal per day");
