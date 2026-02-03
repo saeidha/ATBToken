@@ -285,3 +285,31 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
         require(pool.totalStaked + amount <= pool.poolCap, "Pool capacity reached");
         
         // Transfer tokens from user
+        IERC20(token).transferFrom(msg.sender, address(this), amount);
+        
+        // Calculate lock end time
+        uint256 lockEndTime = 0;
+        if (stakeType == StakeType.LOCKED || stakeType == StakeType.BOOSTED) {
+            lockEndTime = block.timestamp + pool.lockPeriod;
+        }
+        
+        // Check boost card if applicable
+        BoostCardTier boostTier = BoostCardTier.NONE;
+        if (stakeType == StakeType.BOOSTED) {
+            boostTier = boostCards[msg.sender];
+            require(boostTier != BoostCardTier.NONE, "No boost card");
+        }
+        
+        // Create stake position
+        uint256 stakeId = totalStakes++;
+        stakes[stakeId] = StakePosition({
+            stakeId: stakeId,
+            user: msg.sender,
+            token: token,
+            stakeType: stakeType,
+            amount: amount,
+            rewardDebt: 0,
+            startTime: block.timestamp,
+            lockEndTime: lockEndTime,
+            lastHarvestTime: block.timestamp,
+            totalHarvested: 0,
