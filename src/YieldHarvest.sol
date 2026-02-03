@@ -335,3 +335,27 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
         _updateVotingPower(msg.sender);
         
         emit StakeCreated(
+            stakeId,
+            msg.sender,
+            token,
+            stakeType,
+            amount,
+            lockEndTime,
+            boostTier,
+            referrer
+        );
+        
+        return stakeId;
+    }
+    
+    /**
+     * @dev Harvest rewards from a stake
+     * @param stakeId ID of the stake
+     * @param compound Whether to compound rewards
+     */
+    function harvest(uint256 stakeId, bool compound) 
+        external 
+        nonReentrant 
+        stakeExists(stakeId) 
+        stakeActive(stakeId) 
+        onlyStakeOwner(stakeId) 
