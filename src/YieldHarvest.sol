@@ -18,3 +18,33 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  * - Penalty-free early withdrawals with conditions
  * - Governance voting rights for stakers
  */
+contract YieldHarvest is ReentrancyGuard, Ownable {
+    using SafeMath for uint256;
+    
+    // ============ ENUMS ============
+    enum StakeType {
+        FLEXIBLE,    // 0: Withdraw anytime, lower APR
+        LOCKED,      // 1: Fixed lock period, medium APR
+        BOOSTED      // 2: Locked + NFT boost, highest APR
+    }
+    
+    enum BoostCardTier {
+        NONE,        // 0: No boost
+        BRONZE,      // 1: 10% APR boost
+        SILVER,      // 2: 25% APR boost
+        GOLD,        // 3: 50% APR boost
+        PLATINUM     // 4: 100% APR boost
+    }
+    
+    // ============ STRUCTS ============
+    
+    /**
+     * @dev User's stake position
+     */
+    struct StakePosition {
+        uint256 stakeId;
+        address user;
+        address token;
+        StakeType stakeType;
+        uint256 amount;
+        uint256 rewardDebt;
