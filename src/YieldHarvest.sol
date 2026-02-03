@@ -243,3 +243,24 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
     
     modifier onlyStakeOwner(uint256 stakeId) {
         require(stakes[stakeId].user == msg.sender, "Not stake owner");
+        _;
+    }
+    
+    modifier notLocked(uint256 stakeId) {
+        require(
+            stakes[stakeId].stakeType != StakeType.LOCKED || 
+            block.timestamp >= stakes[stakeId].lockEndTime,
+            "Stake is locked"
+        );
+        _;
+    }
+    
+    // ============ CONSTRUCTOR ============
+    constructor() {
+        totalStakes = 0;
+        totalValueLocked = 0;
+        totalRewardsDistributed = 0;
+    }
+    
+    // ============ STAKE FUNCTIONS ============
+    
