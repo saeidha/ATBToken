@@ -170,3 +170,28 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
     event ReferralReward(
         address indexed referrer,
         address indexed referredUser,
+        uint256 stakeId,
+        uint256 rewardAmount
+    );
+    
+    event BoostCardAssigned(
+        address indexed user,
+        BoostCardTier tier
+    );
+    
+    event RewardsCompounded(
+        uint256 indexed stakeId,
+        address indexed user,
+        uint256 compoundedAmount
+    );
+    
+    event GovernanceProposalCreated(
+        uint256 indexed proposalId,
+        address indexed creator,
+        string description,
+        uint256 votingEndTime
+    );
+    
+    event Voted(
+        uint256 indexed proposalId,
+        address indexed voter,
