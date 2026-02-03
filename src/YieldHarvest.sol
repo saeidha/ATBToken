@@ -313,3 +313,25 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
             lockEndTime: lockEndTime,
             lastHarvestTime: block.timestamp,
             totalHarvested: 0,
+            boostTier: boostTier,
+            isActive: true,
+            penaltyPaid: 0
+        });
+        
+        // Update user stakes
+        userStakes[msg.sender].push(stakeId);
+        userPoolStakes[msg.sender][token] += amount;
+        
+        // Update pool totals
+        pool.totalStaked += amount;
+        totalValueLocked += amount;
+        
+        // Handle referral
+        if (referrer != address(0) && referrer != msg.sender) {
+            _processReferral(referrer, msg.sender, stakeId, amount);
+        }
+        
+        // Update voting power
+        _updateVotingPower(msg.sender);
+        
+        emit StakeCreated(
