@@ -264,3 +264,24 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
     
     // ============ STAKE FUNCTIONS ============
     
+    /**
+     * @dev Create a new stake with optional referral
+     * @param token Token to stake
+     * @param amount Amount to stake
+     * @param stakeType Type of stake (0: Flexible, 1: Locked, 2: Boosted)
+     * @param referrer Optional referrer address
+     */
+    function createStake(
+        address token,
+        uint256 amount,
+        StakeType stakeType,
+        address referrer
+    ) external nonReentrant poolExists(token) returns (uint256) {
+        PoolConfig storage pool = pools[token];
+        
+        // Validate inputs
+        require(amount >= pool.minStakeAmount, "Below minimum stake");
+        require(amount <= pool.maxStakeAmount, "Above maximum stake");
+        require(pool.totalStaked + amount <= pool.poolCap, "Pool capacity reached");
+        
+        // Transfer tokens from user
