@@ -73,3 +73,26 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
         uint256 earlyWithdrawFee;  // Fee for early withdrawal (basis points)
         uint256 poolCap;           // Maximum total staked in pool
     }
+    
+    /**
+     * @dev Referral data
+     */
+    struct ReferralData {
+        address referrer;
+        uint256 totalReferred;
+        uint256 referralRewards;
+        uint256 lastCommissionTime;
+        uint256[] referredStakes;
+    }
+    
+    /**
+     * @dev Vesting schedule
+     */
+    struct VestingSchedule {
+        uint256 totalAmount;
+        uint256 claimedAmount;
+        uint256 startTime;
+        uint256 cliff;          // Cliff period (seconds)
+        uint256 duration;       // Total vesting duration (seconds)
+        uint256 slicePeriod;    // Time between vesting slices (seconds)
+    }
