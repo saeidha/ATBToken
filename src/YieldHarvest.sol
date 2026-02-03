@@ -143,3 +143,30 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
     );
     
     event Harvested(
+        uint256 indexed stakeId,
+        address indexed user,
+        uint256 amount,
+        uint256 performanceFee
+    );
+    
+    event Unstaked(
+        uint256 indexed stakeId,
+        address indexed user,
+        uint256 amount,
+        uint256 reward,
+        uint256 earlyWithdrawFee,
+        bool isEarly
+    );
+    
+    event PoolConfigured(
+        address indexed token,
+        uint256 baseAPR,
+        uint256 lockPeriod,
+        uint256 minStakeAmount,
+        uint256 maxStakeAmount,
+        uint256 poolCap
+    );
+    
+    event ReferralReward(
+        address indexed referrer,
+        address indexed referredUser,
