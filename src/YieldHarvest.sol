@@ -49,3 +49,27 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
         uint256 amount;
         uint256 rewardDebt;
         uint256 startTime;
+        uint256 lockEndTime;
+        uint256 lastHarvestTime;
+        uint256 totalHarvested;
+        BoostCardTier boostTier;
+        bool isActive;
+        uint256 penaltyPaid; // Track penalties for stats
+    }
+    
+    /**
+     * @dev Pool configuration
+     */
+    struct PoolConfig {
+        address token;
+        bool isActive;
+        uint256 baseAPR;           // Base APR in basis points (100 = 1%)
+        uint256 lockPeriod;        // For LOCKED stakes (seconds)
+        uint256 minStakeAmount;
+        uint256 maxStakeAmount;
+        uint256 totalStaked;
+        uint256 totalRewardsPaid;
+        uint256 performanceFee;    // Fee on rewards (basis points)
+        uint256 earlyWithdrawFee;  // Fee for early withdrawal (basis points)
+        uint256 poolCap;           // Maximum total staked in pool
+    }
