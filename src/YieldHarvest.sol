@@ -26,9 +26,6 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
         FLEXIBLE,    // 0: Withdraw anytime, lower APR
         LOCKED,      // 1: Fixed lock period, medium APR
         BOOSTED      // 2: Locked + NFT boost, highest APR
-// SPDX-License-Identifier: MIT        FLEXIBLE,    // 0: Withdraw anytime, lower APR
-        LOCKED,      // 1: Fixed lock period, medium APR
-        BOOSTED      // 2: Locked + NFT boost, highest APR
     }
     
     enum BoostCardTier {
