@@ -121,3 +121,25 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
     mapping(uint256 => StakePosition) public stakes;
     mapping(address => uint256[]) public userStakes;
     mapping(address => PoolConfig) public pools;
+    mapping(address => ReferralData) public referrals;
+    mapping(address => VestingSchedule) public vestingSchedules;
+    mapping(address => mapping(address => uint256)) public userPoolStakes; // user => token => amount
+    mapping(address => uint256) public userTotalRewards;
+    mapping(address => bool) public whitelistedTokens;
+    mapping(address => BoostCardTier) public boostCards; // NFT holders boost tiers
+    mapping(uint256 => GovernanceProposal) public governanceProposals;
+    mapping(address => uint256) public userVotingPower; // Based on staked amount
+    
+    // ============ EVENTS ============
+    event StakeCreated(
+        uint256 indexed stakeId,
+        address indexed user,
+        address indexed token,
+        StakeType stakeType,
+        uint256 amount,
+        uint256 lockEndTime,
+        BoostCardTier boostTier,
+        address referrer
+    );
+    
+    event Harvested(
