@@ -96,3 +96,28 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
         uint256 duration;       // Total vesting duration (seconds)
         uint256 slicePeriod;    // Time between vesting slices (seconds)
     }
+    
+    // ============ CONSTANTS ============
+    uint256 public constant BASIS_POINTS = 10000;
+    uint256 public constant SECONDS_PER_YEAR = 365 days;
+    uint256 public constant MAX_PERFORMANCE_FEE = 2000; // 20%
+    uint256 public constant MAX_EARLY_WITHDRAW_FEE = 1000; // 10%
+    uint256 public constant MIN_LOCK_PERIOD = 7 days;
+    uint256 public constant MAX_LOCK_PERIOD = 365 days;
+    
+    // Boost card multipliers (basis points)
+    uint256 public constant BRONZE_BOOST = 11000;   // 10%
+    uint256 public constant SILVER_BOOST = 12500;   // 25%
+    uint256 public constant GOLD_BOOST = 15000;     // 50%
+    uint256 public constant PLATINUM_BOOST = 20000; // 100%
+    
+    // ============ STATE VARIABLES ============
+    uint256 public totalStakes;
+    uint256 public totalValueLocked;
+    uint256 public totalRewardsDistributed;
+    uint256 public governanceProposalCount;
+    
+    // Mappings
+    mapping(uint256 => StakePosition) public stakes;
+    mapping(address => uint256[]) public userStakes;
+    mapping(address => PoolConfig) public pools;
