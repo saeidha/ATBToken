@@ -221,3 +221,25 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
         uint256 votingEndTime;
         uint256 forVotes;
         uint256 againstVotes;
+        bool executed;
+        mapping(address => bool) hasVoted;
+    }
+    
+    // ============ MODIFIERS ============
+    modifier poolExists(address token) {
+        require(pools[token].isActive, "Pool does not exist");
+        _;
+    }
+    
+    modifier stakeExists(uint256 stakeId) {
+        require(stakeId < totalStakes, "Stake does not exist");
+        _;
+    }
+    
+    modifier stakeActive(uint256 stakeId) {
+        require(stakes[stakeId].isActive, "Stake not active");
+        _;
+    }
+    
+    modifier onlyStakeOwner(uint256 stakeId) {
+        require(stakes[stakeId].user == msg.sender, "Not stake owner");
