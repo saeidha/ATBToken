@@ -195,3 +195,29 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
     event Voted(
         uint256 indexed proposalId,
         address indexed voter,
+        bool support,
+        uint256 votingPower
+    );
+    
+    event VestingCreated(
+        address indexed beneficiary,
+        uint256 totalAmount,
+        uint256 cliff,
+        uint256 duration
+    );
+    
+    event VestingClaimed(
+        address indexed beneficiary,
+        uint256 amount,
+        uint256 remaining
+    );
+    
+    // Governance Proposal Structure
+    struct GovernanceProposal {
+        uint256 proposalId;
+        address creator;
+        string description;
+        uint256 createTime;
+        uint256 votingEndTime;
+        uint256 forVotes;
+        uint256 againstVotes;
