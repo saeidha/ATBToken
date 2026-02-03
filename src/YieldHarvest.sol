@@ -359,3 +359,30 @@ contract YieldHarvest is ReentrancyGuard, Ownable {
         stakeExists(stakeId) 
         stakeActive(stakeId) 
         onlyStakeOwner(stakeId) 
+    {
+        StakePosition storage stake = stakes[stakeId];
+        PoolConfig storage pool = pools[stake.token];
+        
+        // Calculate pending rewards
+        uint256 pending = _calculateRewards(stakeId);
+        require(pending > 0, "No rewards to harvest");
+        
+        // Calculate performance fee
+        uint256 feeAmount = (pending * pool.performanceFee) / BASIS_POINTS;
+        uint256 netReward = pending - feeAmount;
+        
+        // Update stake
+        stake.lastHarvestTime = block.timestamp;
+        stake.totalHarvested += pending;
+        stake.rewardDebt += pending;
+        
+        // Update totals
+        pool.totalRewardsPaid += pending;
+        totalRewardsDistributed += pending;
+        userTotalRewards[msg.sender] += pending;
+        
+        if (compound) {
+            // Compound rewards back into stake
+            stake.amount += netReward;
+            pool.totalStaked += netReward;
+            totalValueLocked += netReward;
